@@ -37,13 +37,13 @@ overhead_batchtools = function(n_calls=1e3, n_jobs=10) {
         "#BSUB-o /dev/null",
         "#BSUB-M 512",
         "#BSUB-R rusage[mem=512]",
-        "#BSUB-q highpri",
+#        "#BSUB-q highpri",
         "Rscript -e 'batchtools::doJobCollection(\"<%= uri %>\")'")
 
     tt = proc.time()
     reg = batchtools::makeRegistry(file.dir=tempfile(tmpdir=tmpdir))
     reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template = tmpl)
-    result = batchtools::btlapply(input, fx, n.chunks=10*n_jobs, reg=reg)
+    result = batchtools::btlapply(input, fx, n.chunks=n_jobs, reg=reg)
     tt = proc.time() - tt
 
     stopifnot(simplify2array(input)*2 == result)
@@ -51,7 +51,7 @@ overhead_batchtools = function(n_calls=1e3, n_jobs=10) {
 }
 
 overhead = function(fun, n_calls, n_jobs, rep) {
-    do.call(fun, list(n_calls=n_calls, n_jobs=n_jobs))
+    do.call(fun, list(n_calls=as.integer(n_calls), n_jobs=as.integer(n_jobs)))
 }
 
 ARGS = strsplit(commandArgs(TRUE)[1], "-")[[1]]

@@ -14,7 +14,7 @@ combinations = \
 # filter out batchtools >= 1e7 calls, this just takes too long
 discard = overhead_batchtools-1e+7% overhead_batchtools-1e+8%
 targets = $(filter-out $(discard), $(combinations))
-files = $(targets:%=times/%.RData)
+files = $(shell shuf -e $(targets:%=times/%.RData))
 
 plot.RData: plot.r $(files)
 	Rscript plot.r plot.RData $(files)
