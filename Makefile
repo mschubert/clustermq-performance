@@ -16,8 +16,8 @@ discard = overhead_batchtools-1e+7% overhead_batchtools-1e+8%
 targets = $(filter-out $(discard), $(combinations))
 files = $(shell shuf -e $(targets:%=times/%.RData))
 
-plot.RData: plot.r $(files)
-	Rscript plot.r plot.RData $(files)
+plot.pdf: plot.r $(files)
+	Rscript plot.r $@ $(files)
 
 $(files): times/%.RData: run.r
 	@mkdir -p $(dir $@)
