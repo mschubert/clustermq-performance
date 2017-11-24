@@ -11,10 +11,9 @@ combinations = \
 				$(foreach r, $(rep), \
 					$f-$c-$j-$r))))
 
-# filter out batchtools >= 1e7 calls, this just takes too long
-discard = batchtools-1e+7% batchtools-1e+8%
-targets = $(filter-out $(discard), $(combinations))
-files = $(shell shuf -e $(targets:%=times/%.RData))
+files = $(shell shuf -e $(combinations:%=times/%.RData) | \
+	grep -v batchtools-1e[78] | \
+	grep -v BatchJobs-1e[678])
 
 plot.pdf: plot.r $(files)
 	Rscript plot.r $@ $(files)
