@@ -1,21 +1,11 @@
-library(dplyr)
 # This is to compare clustermq performance compared to batchtools
 #
-# Test cases are:
-#
-# Overhead
+# Testing overhead:
 #  * Vector of numeric (length n), each call multiplies by 2
 #  * 1e3 .. 1e8 calls
 #  * 10 or 100 jobs
-#
-# .. which other test cases? .. [GDSC drug sensi ML?]
 
-#TODO: have functions take a list of vectors
-#  vectors are 1b, 1Kb, 1Mb
-#  either multiply (same length) or summarize them (length=1)
-#    where summarize is better for batchtools, lower reads on reduce
-#    maybe I can get away with only doing summarize
-overhead_cmq = function(n_calls=1e3, n_jobs=10, ...) {
+cmq = function(n_calls=1e3, n_jobs=10, ...) {
     input = runif(n_calls)
     fx = function(x) x*2
 
@@ -23,11 +13,11 @@ overhead_cmq = function(n_calls=1e3, n_jobs=10, ...) {
     result = clustermq::Q(fx, x = input, n_jobs = n_jobs, memory = 512, wait_time=0, ...)
     tt = proc.time() - tt
 
-    stopifnot(simplify2array(input)*2 == result)
+    stopifnot(simplify2array(result) - input*2 < .Machine$double.eps)
     tt
 }
 
-overhead_batchtools = function(n_calls=1e3, n_jobs=10) {
+batchtools = function(n_calls=1e3, n_jobs=10) {
     tmpdir = "/hps/nobackup/saezrodriguez/mike/tmp" # shared between nodes
     input = runif(n_calls)
     fx = function(x) x*2
@@ -37,7 +27,6 @@ overhead_batchtools = function(n_calls=1e3, n_jobs=10) {
         "#BSUB-o /dev/null",
         "#BSUB-M 512",
         "#BSUB-R rusage[mem=512]",
-#        "#BSUB-q highpri",
         "Rscript -e 'batchtools::doJobCollection(\"<%= uri %>\")'")
 
     tt = proc.time()
@@ -46,7 +35,32 @@ overhead_batchtools = function(n_calls=1e3, n_jobs=10) {
     result = batchtools::btlapply(input, fx, n.chunks=n_jobs, reg=reg)
     tt = proc.time() - tt
 
-    stopifnot(simplify2array(input)*2 == result)
+    stopifnot(simplify2array(result) - input*2 < .Machine$double.eps)
+    tt
+}
+
+BatchJobs = function(n_calls=1e3, n_jobs=10) {
+    tmpdir = "/homes/schubert/tmp" # shared between nodes
+    input = runif(n_calls)
+    fx = function(x) x*2
+
+    library(BatchJobs) # read .BatchJobs.R in olddir
+    olddir = getwd()
+    setwd(tmpdir)
+
+    tt = proc.time()
+    reg = BatchJobs::makeRegistry(id=basename(tempdir()))
+    BatchJobs::batchMap(reg=reg, fun=fx, input)
+    ids = BatchJobs::getJobIds(reg)
+    ids = BBmisc::chunk(ids, n.chunks=n_jobs)
+    BatchJobs::submitJobs(reg, ids, job.delay=TRUE, max.retries=Inf)
+    BatchJobs::waitForJobs(reg, ids=BatchJobs::getJobIds(reg))
+    result = reduceResultsList(reg, fun=function(job, res) res)
+    unlink(reg$file.dir, recursive=TRUE)
+    tt = proc.time() - tt
+    setwd(olddir)
+    
+    stopifnot(simplify2array(result) - input*2 < .Machine$double.eps)
     tt
 }
 

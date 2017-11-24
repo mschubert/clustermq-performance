@@ -1,8 +1,8 @@
 exp = $(shell seq 3 8)
-n_calls = $(exp:%=1e+%)
+n_calls = $(exp:%=1e%)
 n_jobs = 10 50
 rep = 1 2
-fun = overhead_batchtools overhead_cmq
+fun = batchtools cmq BatchJobs
 
 combinations = \
 	$(foreach f, $(fun), \
@@ -12,7 +12,7 @@ combinations = \
 					$f-$c-$j-$r))))
 
 # filter out batchtools >= 1e7 calls, this just takes too long
-discard = overhead_batchtools-1e+7% overhead_batchtools-1e+8%
+discard = batchtools-1e+7% batchtools-1e+8%
 targets = $(filter-out $(discard), $(combinations))
 files = $(shell shuf -e $(targets:%=times/%.RData))
 
