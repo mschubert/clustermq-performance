@@ -2,7 +2,7 @@ exp = $(shell seq 3 8)
 n_calls = $(exp:%=1e%)
 n_jobs = 10 50
 rep = 1 2
-fun = batchtools cmq BatchJobs
+fun = BatchJobs batchtools clustermq
 
 combinations = \
 	$(foreach f, $(fun), \

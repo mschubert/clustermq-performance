@@ -5,7 +5,7 @@
 #  * 1e3 .. 1e8 calls
 #  * 10 or 100 jobs
 
-cmq = function(n_calls=1e3, n_jobs=10, ...) {
+clustermq = function(n_calls=1e3, n_jobs=10, ...) {
     input = runif(n_calls)
     fx = function(x) x*2
 
