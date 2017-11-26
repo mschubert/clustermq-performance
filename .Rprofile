@@ -1,2 +1,3 @@
 .libPaths("~/R_pkgs")
-options(clustermq.scheduler = "lsf")
+options(clustermq.scheduler = "lsf",
+        clustermq.template.lsf = "clustermq.tmpl")

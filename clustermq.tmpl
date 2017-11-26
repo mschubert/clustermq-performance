@@ -1,0 +1,10 @@
+#BSUB-J {{ job_name }}[1-{{ n_jobs }}]  # name of the job / array jobs
+#BSUB-g {{ job_group | /cmq }}          # group the job belongs to
+#BSUB-o {{ log_file | /dev/null }}      # stdout + stderr
+#BSUB-M {{ memory | 512 }}             # Memory requirements in Mbytes
+#BSUB-R rusage[mem={{ memory | 512 }}] # Memory requirements in Mbytes
+#BSUB-n {{ cores | 1 }}
+##BSUB-q {{ queue | highpri }}
+
+ulimit -v $(( 1024 * {{ memory | 512 }} ))
+R --no-save --no-restore -e 'clustermq:::worker("{{ master }}")'

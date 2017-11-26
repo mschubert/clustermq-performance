@@ -22,16 +22,9 @@ batchtools = function(n_calls=1e3, n_jobs=10) {
     input = runif(n_calls)
     fx = function(x) x*2
 
-    tmpl = paste(sep="\n",
-        "#BSUB-J <%= job.name %>",
-        "#BSUB-o /dev/null",
-        "#BSUB-M 512",
-        "#BSUB-R rusage[mem=512]",
-        "Rscript -e 'batchtools::doJobCollection(\"<%= uri %>\")'")
-
     tt = proc.time()
     reg = batchtools::makeRegistry(file.dir=tempfile(tmpdir=tmpdir))
-    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template = tmpl)
+    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template = "batchtools.tmpl")
     result = batchtools::btlapply(input, fx, n.chunks=n_jobs, reg=reg)
     tt = proc.time() - tt
 
