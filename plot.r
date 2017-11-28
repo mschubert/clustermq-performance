@@ -28,28 +28,32 @@ times = lapply(INFILES, load_file) %>%
     tidyr::unnest() %>%
     group_by(fun, n_calls, n_jobs) %>%
     summarize(mt = mean(elapsed),
-              sdt = sd(elapsed))
+              sdt = sd(elapsed)) %>%
+    ungroup()
 
 p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=fun, linetype=n_jobs)) +
-    geom_errorbar(aes(ymin=mt-sdt, ymax=mt+sdt), width=.1, position=position_dodge(0.05)) +
-    geom_line() +
-    geom_point()+
+    geom_errorbar(aes(ymin=mt-sdt, ymax=mt+sdt), width=.1, size=1, position=position_dodge(0.05)) +
+    geom_line(size=1.1, alpha=0.8) +
+    geom_point(size=3)+
     scale_y_continuous(trans = "log10",
-                       limits = c(0.8, 9e4),
+                       #limits = c(0.8, 4e4),
                        breaks = c(1, 30, 60, 1800, 3600, 43200, 86400),
                        labels = c("1 second", "30 s", "1 minute", "30 m", "1 hour", "12 h", "1 day")) +
     scale_x_continuous(trans = "log10",
-                       breaks = unique(times$n_calls)) +
-    scale_color_discrete(labels=c(paste("batchtools", packageVersion("batchtools")),
+                       breaks = unique(times$n_calls),
+                       labels = sub("\\+0", "", sprintf("%.0e", unique(times$n_calls)))) +
+    scale_color_discrete(labels=c(paste("BatchJobs", packageVersion("BatchJobs")),
+                                  paste("batchtools", packageVersion("batchtools")),
                                   paste("clustermq", packageVersion("clustermq")))) +
-    labs(title = "Overhead of clustermq vs. batchtools",
+    labs(title = "Processing overhead",
          x = "Number of function calls",
          y = "Runtime") +
     guides(color = guide_legend(title="Package"),
            shape = guide_legend(title="Number of jobs"),
            linetype = guide_legend(title="Number of jobs")) +
-    theme_classic()
+    theme_classic() +
+    theme(axis.text = element_text(size=11))
 
-pdf(OUTFILE, width=5, height=3.5)
+pdf(OUTFILE, width=6, height=4)
 print(p)
 dev.off()
