@@ -1,4 +1,4 @@
-exp = $(shell seq 3 8)
+exp = $(shell seq 3 9)
 n_calls = $(exp:%=1e%)
 n_jobs = 10 50
 rep = 1 2
@@ -12,8 +12,8 @@ combinations = \
 					$f-$c-$j-$r))))
 
 files = $(shell shuf -e $(combinations:%=times/%.RData) | \
-	grep -v batchtools-1e[78] | \
-	grep -v BatchJobs-1e[678])
+	grep -v batchtools-1e[789] | \
+	grep -v BatchJobs-1e[6789])
 
 plot.pdf: plot.r $(files)
 	Rscript plot.r $@ $(files)
