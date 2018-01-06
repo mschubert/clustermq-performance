@@ -38,7 +38,7 @@ p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=fun, linetype=n_jobs)
     scale_y_continuous(trans = "log10",
                        limits = c(0.5, 9e4),
                        breaks = c(1, 30, 60, 1800, 3600, 43200, 86400),
-                       labels = c("1 second", "30 s", "1 minute", "30 m", "1 hour", "12 h", "1 day")) +
+                       labels = c("1 second", "30 s", "1 minute", "30 min", "1 hour", "12 h", "1 day")) +
     scale_x_continuous(trans = "log10",
                        breaks = unique(times$n_calls),
                        labels = sub("\\+0", "", sprintf("%.0e", unique(times$n_calls)))) +
