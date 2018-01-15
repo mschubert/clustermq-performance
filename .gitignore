@@ -1,4 +1,5 @@
 index.txt
 *.RData
 *.pdf
+*.png
 times/*

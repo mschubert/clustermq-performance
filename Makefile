@@ -15,6 +15,9 @@ files = $(shell shuf -e $(combinations:%=times/%.RData) | \
 	grep -v batchtools-1e[789] | \
 	grep -v BatchJobs-1e[6789])
 
+plot.png: plot.pdf
+	convert -density 400 -resize 25% $< $@
+
 plot.pdf: plot.r $(files)
 	Rscript plot.r $@ $(files)
 
