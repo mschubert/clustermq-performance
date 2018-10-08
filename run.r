@@ -5,31 +5,31 @@
 #  * 1e3 .. 1e8 calls
 #  * 10 or 100 jobs
 
-clustermq = function(fun, ..., n_calls=1e3, n_jobs=10) {
+clustermq = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
     tt = proc.time()
-    result = clustermq::Q(fun, ..., n_jobs=n_jobs, memory=512, rettype="numeric")
+    result = clustermq::Q(fun, ..., const=const, n_jobs=n_jobs, memory=512, rettype="numeric")
     tt = proc.time() - tt
     list(result=result, time=tt)
 }
 
-batchtools = function(fun, ..., n_calls=1e3, n_jobs=10) {
+batchtools = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
     tt = proc.time()
     reg = batchtools::makeRegistry(file.dir=tempfile())
 #    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template="batchtools_lsf.tmpl")
     reg$cluster.functions = batchtools::makeClusterFunctionsSlurm(template="batchtools_slurm.tmpl")
-    result = batchtools::btmapply(fun, ..., n.chunks=n_jobs, reg=reg)
+    result = batchtools::btmapply(fun, ..., more.args=const, n.chunks=n_jobs, reg=reg)
     tt = proc.time() - tt
     list(result=result, time=tt)
 }
 
-BatchJobs = function(fun, ..., n_calls=1e3, n_jobs=10) {
+BatchJobs = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
     library(BatchJobs) # read .BatchJobs.R in olddir
     olddir = getwd()
     setwd(Sys.getenv("TMPDIR"))
 
     tt = proc.time()
     reg = BatchJobs::makeRegistry(id=basename(tempdir()))
-    BatchJobs::batchMap(reg=reg, fun=fun, ...)
+    BatchJobs::batchMap(reg=reg, fun=fun, ..., more.args=const)
     ids = BatchJobs::getJobIds(reg)
     ids = BBmisc::chunk(ids, n.chunks=n_jobs)
     BatchJobs::submitJobs(reg, ids, job.delay=TRUE, max.retries=Inf)
