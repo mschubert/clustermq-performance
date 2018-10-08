@@ -2,4 +2,4 @@
 #BSUB-o /dev/null
 #BSUB-M 512
 #BSUB-R rusage[mem=512]
-Rscript -e 'batchtools::doJobCollection(\"<%= uri %>\")'"
+Rscript -e 'batchtools::doJobCollection("<%= uri %>")'"

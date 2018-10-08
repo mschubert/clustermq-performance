@@ -14,8 +14,9 @@ clustermq = function(fx, input, n_calls=1e3, n_jobs=10) {
 
 batchtools = function(fx, input, n_calls=1e3, n_jobs=10) {
     tt = proc.time()
-    reg = batchtools::makeRegistry(file.dir=tempfile(tmpdir=TMPDIR))
-    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template="batchtools.tmpl")
+    reg = batchtools::makeRegistry(file.dir=tempfile())
+#    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template="batchtools_lsf.tmpl")
+    reg$cluster.functions = batchtools::makeClusterFunctionsSlurm(template="batchtools_slurm.tmpl")
     result = batchtools::btlapply(input, fx, n.chunks=n_jobs, reg=reg)
     tt = proc.time() - tt
     list(result=result, time=tt)
@@ -24,7 +25,7 @@ batchtools = function(fx, input, n_calls=1e3, n_jobs=10) {
 BatchJobs = function(fx, input, n_calls=1e3, n_jobs=10) {
     library(BatchJobs) # read .BatchJobs.R in olddir
     olddir = getwd()
-    setwd(TMPDIR)
+    setwd(Sys.getenv("TMPDIR"))
 
     tt = proc.time()
     reg = BatchJobs::makeRegistry(id=basename(tempdir()))
@@ -54,7 +55,6 @@ overhead = function(pkg, n_calls, n_jobs, rep) {
 
 ARGS = strsplit(commandArgs(TRUE)[1], "[/-]")[[1]]
 OUTFILE = commandArgs(TRUE)[2]
-TMPDIR = "/homes/schubert/tmp" # shared between nodes
 
 print(ARGS)
 times = do.call(ARGS[1], as.list(ARGS[-1]))
