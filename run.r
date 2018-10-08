@@ -5,31 +5,31 @@
 #  * 1e3 .. 1e8 calls
 #  * 10 or 100 jobs
 
-clustermq = function(fx, input, n_calls=1e3, n_jobs=10) {
+clustermq = function(fun, ..., n_calls=1e3, n_jobs=10) {
     tt = proc.time()
-    result = clustermq::Q(fx, x=input, n_jobs=n_jobs, memory=512, rettype="numeric")
+    result = clustermq::Q(fun, ..., n_jobs=n_jobs, memory=512, rettype="numeric")
     tt = proc.time() - tt
     list(result=result, time=tt)
 }
 
-batchtools = function(fx, input, n_calls=1e3, n_jobs=10) {
+batchtools = function(fun, ..., n_calls=1e3, n_jobs=10) {
     tt = proc.time()
     reg = batchtools::makeRegistry(file.dir=tempfile())
 #    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template="batchtools_lsf.tmpl")
     reg$cluster.functions = batchtools::makeClusterFunctionsSlurm(template="batchtools_slurm.tmpl")
-    result = batchtools::btlapply(input, fx, n.chunks=n_jobs, reg=reg)
+    result = batchtools::btmapply(fun, ..., n.chunks=n_jobs, reg=reg)
     tt = proc.time() - tt
     list(result=result, time=tt)
 }
 
-BatchJobs = function(fx, input, n_calls=1e3, n_jobs=10) {
+BatchJobs = function(fun, ..., n_calls=1e3, n_jobs=10) {
     library(BatchJobs) # read .BatchJobs.R in olddir
     olddir = getwd()
     setwd(Sys.getenv("TMPDIR"))
 
     tt = proc.time()
     reg = BatchJobs::makeRegistry(id=basename(tempdir()))
-    BatchJobs::batchMap(reg=reg, fun=fx, input)
+    BatchJobs::batchMap(reg=reg, fun=fun, ...)
     ids = BatchJobs::getJobIds(reg)
     ids = BBmisc::chunk(ids, n.chunks=n_jobs)
     BatchJobs::submitJobs(reg, ids, job.delay=TRUE, max.retries=Inf)
@@ -43,13 +43,13 @@ BatchJobs = function(fx, input, n_calls=1e3, n_jobs=10) {
 }
 
 overhead = function(pkg, n_calls, n_jobs, rep) {
-    args = list(fx = function(x) x*2,
-                input = runif(n_calls),
+    args = list(fun = function(x) x*2,
+                x = runif(n_calls),
                 n_calls=as.integer(n_calls),
                 n_jobs=as.integer(n_jobs))
 
     re = do.call(pkg, args)
-    stopifnot(simplify2array(re$result) - args$input*2 < .Machine$double.eps)
+    stopifnot(simplify2array(re$result) - args$x*2 < .Machine$double.eps)
     re$tt
 }
 
