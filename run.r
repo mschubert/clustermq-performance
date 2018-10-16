@@ -5,15 +5,14 @@
 #  * 1e3 .. 1e8 calls
 #  * 10 or 100 jobs
 
-clustermq = function(fun, ..., const=list(), n_jobs=10) {
-    #TODO: rettype="numeric" if parent.frame is overhead
+clustermq = function(fun, ..., const=list(), n_jobs=10, rettype="list") {
     tt = proc.time()
-    result = clustermq::Q(fun, ..., const=const, n_jobs=n_jobs, memory=512)
+    result = clustermq::Q(fun, ..., const=const, n_jobs=n_jobs, memory=512, rettype=rettype)
     tt = proc.time() - tt
     list(result=result, time=tt)
 }
 
-batchtools = function(fun, ..., const=list(), n_jobs=10) {
+batchtools = function(fun, ..., const=list(), n_jobs=10, rettype="list") {
     tt = proc.time()
     reg = batchtools::makeRegistry(file.dir=tempfile())
 #    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template="batchtools_lsf.tmpl")
@@ -23,7 +22,7 @@ batchtools = function(fun, ..., const=list(), n_jobs=10) {
     list(result=result, time=tt)
 }
 
-BatchJobs = function(fun, ..., const=list(), n_jobs=10) {
+BatchJobs = function(fun, ..., const=list(), n_jobs=10, rettype="list") {
     library(BatchJobs) # read .BatchJobs.R in olddir
     olddir = getwd()
     setwd(Sys.getenv("TMPDIR"))
@@ -46,7 +45,8 @@ BatchJobs = function(fun, ..., const=list(), n_jobs=10) {
 overhead = function(pkg, n_calls, n_jobs, rep) {
     args = list(fun = function(x) x*2,
                 x = runif(n_calls),
-                n_jobs=as.integer(n_jobs))
+                n_jobs = as.integer(n_jobs),
+                rettype = "numeric")
 
     Sys.sleep(30 + sample(0:30, size=1))
     re = do.call(pkg, args)
