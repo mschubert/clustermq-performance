@@ -1,6 +1,6 @@
-exp = $(shell seq 3 4) # seq 3 9 for full range; reduce for testing
+exp = $(shell seq 3 9) # seq 3 9 for full range; reduce for testing
 n_calls = $(exp:%=1e%)
-n_jobs = 10 #50
+n_jobs = 10 50
 rep = 1 2
 pkg = BatchJobs batchtools clustermq
 fun = overhead
@@ -25,4 +25,5 @@ plot.pdf: plot.r $(files)
 
 $(files): %.RData: run.r
 	@mkdir -p $(dir $@)
-	Rscript $^ $* $@
+	sleep 60
+	TMPDIR=./tmp Rscript $^ $* $@

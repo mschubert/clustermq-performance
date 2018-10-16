@@ -5,14 +5,15 @@
 #  * 1e3 .. 1e8 calls
 #  * 10 or 100 jobs
 
-clustermq = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
+clustermq = function(fun, ..., const=list(), n_jobs=10) {
+    #TODO: rettype="numeric" if parent.frame is overhead
     tt = proc.time()
-    result = clustermq::Q(fun, ..., const=const, n_jobs=n_jobs, memory=512, rettype="numeric")
+    result = clustermq::Q(fun, ..., const=const, n_jobs=n_jobs, memory=512)
     tt = proc.time() - tt
     list(result=result, time=tt)
 }
 
-batchtools = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
+batchtools = function(fun, ..., const=list(), n_jobs=10) {
     tt = proc.time()
     reg = batchtools::makeRegistry(file.dir=tempfile())
 #    reg$cluster.functions = batchtools::makeClusterFunctionsLSF(template="batchtools_lsf.tmpl")
@@ -22,7 +23,7 @@ batchtools = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
     list(result=result, time=tt)
 }
 
-BatchJobs = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
+BatchJobs = function(fun, ..., const=list(), n_jobs=10) {
     library(BatchJobs) # read .BatchJobs.R in olddir
     olddir = getwd()
     setwd(Sys.getenv("TMPDIR"))
@@ -45,12 +46,40 @@ BatchJobs = function(fun, ..., const=list(), n_calls=1e3, n_jobs=10) {
 overhead = function(pkg, n_calls, n_jobs, rep) {
     args = list(fun = function(x) x*2,
                 x = runif(n_calls),
-                n_calls=as.integer(n_calls),
                 n_jobs=as.integer(n_jobs))
 
     re = do.call(pkg, args)
     stopifnot(simplify2array(re$result) - args$x*2 < .Machine$double.eps)
     re$tt
+}
+
+bem = function(pkg, n_calls, n_jobs, rep) {
+    fun = function(cohort, drug, feat, bem, ic50s, tissues) {
+        if (cohort == "pan")
+            subs = rep(TRUE, length(tissues))
+        else
+            subs = tissues == cohort
+        resp = ic50s[subs, drug]
+        feats = bem[subs, feat]
+        if (sum(feats[!is.na(resp)]) >= 2)
+            broom::tidy(lm(resp ~ feats))
+        else
+            c()
+    }
+
+    gdsc = import('data/gdsc')
+    tissues = gdsc$tissues(minN=10)
+    ic50s = gdsc$drug_response()
+    bem = gdsc$bem()
+    narray::intersect(tissues, ic50s, bem, along=1)
+
+    idx = expand.grid(cohort=c("pan", unique(tissues)), drug=colnames(ic50s),
+                      feat=colnames(bem), stringsAsFactors=FALSE)
+    idx = idx[sample(seq_len(nrow(idx)), n_calls, replace=TRUE),]
+
+    re = pkg(fun=fun, cohort=idx$cohort, drug=idx$drug, feat=idx$feat,
+             n_jobs=as.integer(n_jobs),
+             const = list(ic50s=ic50s, tissues=tissues, bem=bem))
 }
 
 ARGS = strsplit(commandArgs(TRUE)[1], "[/-]")[[1]]
