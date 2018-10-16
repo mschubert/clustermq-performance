@@ -50,7 +50,7 @@ overhead = function(pkg, n_calls, n_jobs, rep) {
 
     re = do.call(pkg, args)
     stopifnot(simplify2array(re$result) - args$x*2 < .Machine$double.eps)
-    re$tt
+    re$time
 }
 
 bem = function(pkg, n_calls, n_jobs, rep) {
@@ -80,6 +80,7 @@ bem = function(pkg, n_calls, n_jobs, rep) {
     re = pkg(fun=fun, cohort=idx$cohort, drug=idx$drug, feat=idx$feat,
              n_jobs=as.integer(n_jobs),
              const = list(ic50s=ic50s, tissues=tissues, bem=bem))
+    re$time
 }
 
 ARGS = strsplit(commandArgs(TRUE)[1], "[/-]")[[1]]
