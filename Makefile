@@ -25,5 +25,4 @@ plot.pdf: plot.r $(files)
 
 $(files): %.RData: run.r
 	@mkdir -p $(dir $@)
-	sleep 60
 	TMPDIR=./tmp Rscript $^ $* $@

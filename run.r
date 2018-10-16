@@ -48,6 +48,7 @@ overhead = function(pkg, n_calls, n_jobs, rep) {
                 x = runif(n_calls),
                 n_jobs=as.integer(n_jobs))
 
+    Sys.sleep(30 + sample(0:30, size=1))
     re = do.call(pkg, args)
     stopifnot(simplify2array(re$result) - args$x*2 < .Machine$double.eps)
     re$time
@@ -77,6 +78,7 @@ bem = function(pkg, n_calls, n_jobs, rep) {
                       feat=colnames(bem), stringsAsFactors=FALSE)
     idx = idx[sample(seq_len(nrow(idx)), n_calls, replace=TRUE),]
 
+    Sys.sleep(30 + sample(0:30, size=1))
     re = pkg(fun=fun, cohort=idx$cohort, drug=idx$drug, feat=idx$feat,
              n_jobs=as.integer(n_jobs),
              const = list(ic50s=ic50s, tissues=tissues, bem=bem))
