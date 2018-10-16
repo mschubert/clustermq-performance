@@ -3,3 +3,5 @@ index.txt
 *.pdf
 *.png
 times/*
+tmp/*
+log/*
