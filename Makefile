@@ -25,4 +25,4 @@ plot.pdf: plot.r $(files)
 
 $(files): %.RData: run.r
 	@mkdir -p $(dir $@)
-	TMPDIR=./tmp Rscript $^ $* $@
+	TMPDIR=$(abspath tmp) Rscript $^ $* $@
