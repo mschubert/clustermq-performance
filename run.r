@@ -78,10 +78,12 @@ bem = function(pkg, n_calls, n_jobs, rep) {
                       feat=colnames(bem), stringsAsFactors=FALSE)
     idx = idx[sample(seq_len(nrow(idx)), n_calls, replace=TRUE),]
 
+    args = list(fun=fun, cohort=idx$cohort, drug=idx$drug, feat=idx$feat,
+        n_jobs=as.integer(n_jobs),
+        const = list(ic50s=ic50s, tissues=tissues, bem=bem))
+
     Sys.sleep(30 + sample(0:30, size=1))
-    re = pkg(fun=fun, cohort=idx$cohort, drug=idx$drug, feat=idx$feat,
-             n_jobs=as.integer(n_jobs),
-             const = list(ic50s=ic50s, tissues=tissues, bem=bem))
+    re = do.call(pkg, args)
     re$time
 }
 
