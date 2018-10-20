@@ -1,5 +1,7 @@
+#!/bin/sh
 #BSUB-J <%= job.name %>
-#BSUB-o /dev/null
+#BSUB-o log/<%= job.name %>
+#BSUB-e log/<%= job.name %>
 #BSUB-M 512
 #BSUB-R rusage[mem=512]
-Rscript -e 'batchtools::doJobCollection("<%= uri %>")'"
+Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
