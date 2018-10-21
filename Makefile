@@ -3,7 +3,7 @@ n_calls = $(exp:%=1e%)
 n_jobs = 10 50
 rep = 1 2
 pkg = BatchJobs batchtools clustermq
-fun = overhead
+fun = overhead bem
 
 combinations = \
 	$(foreach f, $(fun), \
@@ -15,7 +15,10 @@ combinations = \
 
 files = $(shell shuf -e $(combinations:%=%.RData) | \
 	grep -v batchtools-1e[789] | \
-	grep -v BatchJobs-1e[6789])
+	grep -v BatchJobs-1e[789] | \
+	grep -v bem/batchtools-1e6 | \
+	grep -v bem/BatchJobs-1e6 | \
+	grep -v bem/clustermq-1e9)
 
 plot.png: plot.pdf
 	convert -density 400 -resize 25% $< $@
