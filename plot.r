@@ -5,9 +5,9 @@ load_file = function(fname) {
     env = new.env()
     load(fname, env)
     
-    fields = strsplit(sub("\\.RData$", "", basename(fname)), "-")[[1]] %>%
+    fields = strsplit(sub("\\.RData$", "", fname), "[/-]")[[1]] %>%
         as.list() %>%
-        setNames(c("fun", "n_calls", "n_jobs", "rep"))
+        setNames(c("fun", "pkg", "n_calls", "n_jobs", "rep"))
 
     fields$times = list(do.call(data.frame, as.list(env$times)))
     fields
@@ -17,7 +17,8 @@ OUTFILE = commandArgs(TRUE)[1]
 INFILES = commandArgs(TRUE)[-1]
 
 if (length(INFILES) == 0)
-    INFILES = list.files("times", recursive=TRUE, full.names=TRUE)
+    INFILES = c(list.files("overhead", recursive=TRUE, full.names=TRUE),
+                list.files("overhead", recursive=TRUE, full.names=TRUE))
 
 if (is.na(OUTFILE))
     OUTFILE = "plot.pdf"
@@ -26,19 +27,19 @@ times = lapply(INFILES, load_file) %>%
     bind_rows() %>%
     mutate(n_calls = as.numeric(n_calls)) %>%
     tidyr::unnest() %>%
-    group_by(fun, n_calls, n_jobs) %>%
+    group_by(fun, pkg, n_calls, n_jobs) %>%
     summarize(mt = mean(elapsed),
               sdt = sd(elapsed)) %>%
     ungroup()
 
-p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=fun, linetype=n_jobs)) +
+p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=pkg, linetype=n_jobs)) +
     geom_errorbar(aes(ymin=mt-sdt, ymax=mt+sdt), width=.1, size=1, position=position_dodge(0.05)) +
     geom_line(size=1.1, alpha=0.8) +
     geom_point(size=3)+
     scale_y_continuous(trans = "log10",
 #                       limits = c(0.5, 9e4),
-                       breaks = c(1, 30, 60, 1800, 3600, 43200, 86400),
-                       labels = c("1 second", "30 s", "1 minute", "30 min", "1 hour", "12 h", "1 day")) +
+                       breaks = c(1, 5, 30, 60, 300, 1800, 3600, 18000, 43200, 86400),
+                       labels = c("1 second", "5 s", "30 s", "1 minute", "5 min", "30 min", "1 hour", "5 h", "12 h", "1 day")) +
     scale_x_continuous(trans = "log10",
                        breaks = unique(times$n_calls),
                        labels = sub("\\+0", "", sprintf("%.0e", unique(times$n_calls)))) +
@@ -52,8 +53,9 @@ p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=fun, linetype=n_jobs)
            shape = guide_legend(title="Number of jobs"),
            linetype = guide_legend(title="Number of jobs")) +
     theme_classic() +
-    theme(axis.text = element_text(size=11))
+    theme(axis.text = element_text(size=11)) +
+    facet_wrap(~ fun)
 
-pdf(OUTFILE, width=6, height=4)
+pdf(OUTFILE, width=10, height=4)
 print(p)
 dev.off()
