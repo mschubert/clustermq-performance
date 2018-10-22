@@ -15,9 +15,7 @@ combinations = \
 
 files = $(shell shuf -e $(combinations:%=%.RData) | \
 	grep -v batchtools-1e[789] | \
-	grep -v BatchJobs-1e[789] | \
-	grep -v bem/batchtools-1e6 | \
-	grep -v bem/BatchJobs-1e6 | \
+	grep -v BatchJobs-1e[6789] | \
 	grep -v bem/clustermq-1e9)
 
 plot.png: plot.pdf
