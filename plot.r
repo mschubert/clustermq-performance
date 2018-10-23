@@ -30,7 +30,9 @@ times = lapply(INFILES, load_file) %>%
     group_by(fun, pkg, n_calls, n_jobs) %>%
     summarize(mt = mean(elapsed),
               sdt = sd(elapsed)) %>%
-    ungroup()
+    ungroup() %>%
+    mutate(fun = factor(fun, levels=c("overhead", "bem")))
+levels(times$fun) = c("Overhead", "GDSC drug associations")
 
 p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=pkg, linetype=n_jobs)) +
     geom_errorbar(aes(ymin=mt-sdt, ymax=mt+sdt), width=.1, size=1, position=position_dodge(0.05)) +
@@ -46,16 +48,18 @@ p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=pkg, linetype=n_jobs)
     scale_color_discrete(labels=c(paste("BatchJobs", packageVersion("BatchJobs")),
                                   paste("batchtools", packageVersion("batchtools")),
                                   paste("clustermq", packageVersion("clustermq")))) +
-    labs(title = "Processing overhead",
+    labs(#title = "Runtime",
          x = "Number of function calls",
          y = "Runtime") +
     guides(color = guide_legend(title="Package"),
            shape = guide_legend(title="Number of jobs"),
            linetype = guide_legend(title="Number of jobs")) +
     theme_classic() +
-    theme(axis.text = element_text(size=11)) +
-    facet_wrap(~ fun)
+    theme(axis.text = element_text(size=11),
+          strip.text = element_text(size=12),
+          strip.background = element_blank()) +
+    facet_wrap(~ fun, scales="free_x")
 
-pdf(OUTFILE, width=10, height=4)
+pdf(OUTFILE, width=8, height=3.5)
 print(p)
 dev.off()
