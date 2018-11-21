@@ -34,10 +34,15 @@ times = lapply(INFILES, load_file) %>%
     mutate(fun = factor(fun, levels=c("overhead", "bem")))
 levels(times$fun) = c("Overhead", "GDSC drug associations")
 
+vline = data.frame(fun=c("overhead", "bem"), x=c(NA, 7392970))
+vline$fun = factor(vline$fun)
+levels(vline$fun) = c("GDSC drug associations", "Overhead")
+
 p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=pkg, linetype=n_jobs)) +
+    geom_vline(data=vline, aes(xintercept=x), color="grey", linetype="dashed") +
     geom_errorbar(aes(ymin=mt-sdt, ymax=mt+sdt), width=.1, size=1, position=position_dodge(0.05)) +
     geom_line(size=1.1, alpha=0.8) +
-    geom_point(size=3)+
+    geom_point(size=3) +
     scale_y_continuous(trans = "log10",
 #                       limits = c(0.5, 9e4),
                        breaks = c(1, 5, 30, 60, 300, 1800, 3600, 18000, 43200, 86400),
