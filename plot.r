@@ -29,14 +29,14 @@ times = lapply(INFILES, load_file) %>%
     tidyr::unnest() %>%
     group_by(fun, pkg, n_calls, n_jobs) %>%
     summarize(mt = mean(elapsed),
-              sdt = sd(elapsed)) %>%
+              sdt = (max(elapsed)-min(elapsed))/2) %>%
     ungroup() %>%
     mutate(fun = factor(fun, levels=c("overhead", "bem")))
-levels(times$fun) = c("Overhead", "GDSC drug associations")
+levels(times$fun) = c("(a) Overhead", "(b) GDSC drug associations")
 
 vline = data.frame(fun=c("overhead", "bem"), x=c(NA, 7392970))
 vline$fun = factor(vline$fun)
-levels(vline$fun) = c("GDSC drug associations", "Overhead")
+levels(vline$fun) = c("(b) GDSC drug associations", "(a) Overhead")
 
 p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=pkg, linetype=n_jobs)) +
     geom_vline(data=vline, aes(xintercept=x), color="grey", linetype="dashed") +
