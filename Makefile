@@ -19,7 +19,7 @@ files = $(shell shuf -e $(combinations:%=%.RData) | \
 	grep -v bem/clustermq-1e9)
 
 plot.png: plot.pdf
-	convert -density 400 -resize 25% $< $@
+	convert -density 400 $< -resize 25% $@
 
 plot.pdf: plot.r $(files)
 	Rscript plot.r $@ $(files)
@@ -27,3 +27,6 @@ plot.pdf: plot.r $(files)
 $(files): %.RData: run.r
 	@mkdir -p $(dir $@)
 	TMPDIR=$(abspath tmp) Rscript $^ $* $@
+
+Supplements.pdf: Supplements.Rmd
+	R --no-save --no-restore -e "rmarkdown::render('$<', 'pdf_document')"

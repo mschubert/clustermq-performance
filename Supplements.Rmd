@@ -1,0 +1,208 @@
+---
+title: 'Supplementary Data for "clustermq enables efficient parallelisation of genomic analyses"'
+author: "Michael Schubert"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    citation_package: natbib
+    fig_caption: true
+---
+
+```{css echo=FALSE}
+img {
+    border: 0px !important;
+    margin: 2em 2em 2em 2em !important;
+}
+code {
+    border: 0px !important;
+}
+```
+
+```{r echo=FALSE, results="hide"}
+library(clustermq)
+options(clustermq.scheduler = 'local')
+knitr::opts_chunk$set(
+    cache = FALSE,
+    echo = TRUE,
+#    eval = FALSE,
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+\newpage
+
+# Online methods
+
+## Package architecture
+
+Traditionally, R packages that enable a user to distribute
+a set of function calls to workers on managed by a HPC scheduler rely on
+network-mounted storage (Fig. S1a). This means that for a certain set of calls,
+all arguments required for each of these needs to be written to disk. These
+files are then accessed by HPC workers after their jobs started up, which
+perform the computations. After computations are done, the workers again write
+their results on network storage.
+
+This is not a problem if the total number of calls to process is low and
+run-times for each call themselves are high, as then the processing time will
+be determined by the task itself. However, if there is a high number of
+short-running calls to process, this becomes a serious bottleneck (cf. Fig. 1).
+
+The clustermq package on the other hand bypasses network storage entirely (Fig.
+S1b). It will transfer the common data required to perform any call to each
+worker once, and then with each call (or set of calls) transfer the iterated
+call arguments to the workers. This is not only faster as it does not incur the
+delay of both writing to and reading from a networked hard disk, but also
+allows for load balancing if a worker is faster or slower than others with its
+computations.
+
+![](schema.png){width=40%}
+
+**Fig. S1.** Difference in design of (a) network storage-based parallelisation vs.
+(b) a network-only solution. In the former, function arguments are written to
+disk for every call, then read by the workers, which in turn save their result
+on disk. This needs to be read by the main process again to collect the
+results. By contrast, a network-only approach distributes calls from memory,
+and collects results to memory without requiring additional disk storage.
+
+The network-based approach (Fig. S1b) has another advantage: If the R session
+is running on a personal computer that is connected to a computing cluster via
+SSH, computations can be sent to workers, and the results from the cluster
+returned to the local session without the need for additional setup (as long as
+R is installed with all relevant packages on the computing cluster as well as
+local session). In this case, clustermq transfers common objects to the
+computing cluster once, and then waits for the results using an SSH connection
+called reverse tunneling. For file-system-based tools on the other hand, a user
+would need to copy relevant data on the network-mounted storage of the
+computing cluster (or mount it locally via sshfs), submit jobs there manually,
+and copy/read the results afterwards back to the locally running session
+afterwards.
+
+## Testing hardware
+
+<<wait for yoda answers here>>
+
+## Package options
+
+BatchJobs calls were explicitly chunked with the number of chunks equal to the
+number of jobs. Completed jobs were reduced as a list. Queries were staged, the
+SQLite database timeout set to 5 seconds, and the journal mode to WAL (in line
+with recommendations to reduce issues with file-system locks). Removing the
+registry directory after job completion was counted as processing time.
+
+For batchtools we used btmapply with default settings.
+
+For clustermq we defined rettype as a numeric vector for the overhead scenario
+and as a list for the GDSC scenario. We reduced the number of calls to 10^8 for
+the GDSC scenario in order to fit the results in the main task’s memory.
+
+Worker memory was set at 512 MB for all packages and all tests.
+
+The number of calls was reduced for BatchJobs because of reproducible SQLite
+database errors for 10^6 calls and over. It was also reduced for batchtools
+because the package did not successfully complete 10^7 calls and over with our
+setup.
+
+## Running test cases
+
+Every combination of package, number of calls, and number of jobs was run in
+two replicates. We randomized the order each of these measurements was taken.
+The computing cluster at each time had medium load and enough free slots to
+accommodate the measurement (10 or 50 jobs). If jobs were queued long enough
+for this to influence the overall time it took for processing, the measurement
+was discarded and repeated.
+
+Before running each test case, we introduced a random delay between 30 and 60
+seconds in order not to be penalized by the scheduler for rapid submissions.
+
+## Overhead comparison
+
+The idea of a processing overhead comparison is that given negligible
+evaluation time of individual function calls, we can estimate how much time it
+takes a framework to distribute and process its calls, and collect the result
+after. This provides a lower bound at which a number of function calls can be
+processed. If the overhead cost of processing a number of function calls is too
+high by itself, it indicates that a certain framework is no longer suitable to
+process this number of tasks.
+
+For our tests, we chose as input a vector of uniform random numbers of length
+N, and a function that multiplies each of these numbers by 2, resulting in N
+function calls. This ensures that we can verify the result by locally
+performing the same task. The time it takes to perform each of these
+multiplications is expected to be negligible compared to the time it takes to
+distribute each individual function call and collect the results. We chose N to
+be between 10^3 and 10^9 calls, separated by a factor of 10.
+
+## GDSC comparison
+
+We downloaded the following files from the GDSC1000 web site
+(https://www.cancerrxgene.org/gdsc1000/GDSC1000_WebResources/Home.html):
+Annotated list of cell-lines log(IC50) values Cancer functional events (CFEs)
+BEMs for cell-lines
+
+We filtered the data by cancer cohorts that had at least 10 cell lines,
+yielding 25 cohorts and 873 cell lines, their response to 265 drugs, and 1073
+binary events that are either present or absent in a given cell line.
+
+For each of these cohorts, we ran a linear model to test whether the drug
+sensitivity (IC50) is different for cell lines that harbor an event vs. those
+that do not. Additionally, we performed the same for the pan-cancer cohort. For
+each of these models, we converted the result into a data.frame using the broom
+package. This yielded in total of 7,392,970 associations.
+
+As this is a fixed number that only gives limited insight into the processing
+capabilities of HPC packages, we resampled with replacement the combinations of
+cohort, drug, and binary event to yield a number between 10^3 and 10^8,
+separated by a factor of 10.
+
+\newpage
+
+# User guide
+
+```{r child='wiki_Rmd/Installation.Rmd'}
+```
+
+```{r child='wiki_Rmd/Configuration.Rmd'}
+```
+
+```{r child='wiki_Rmd/Usage.Rmd'}
+```
+
+```{r child='wiki_Rmd/Troubleshooting.Rmd'}
+```
+
+\newpage
+
+# Technical documentation
+
+```{r child='wiki_Rmd/Worker-API.Rmd'}
+```
+
+```{r child='wiki_Rmd/ZeroMQ-message-specification.Rmd'}
+```
+
+\newpage
+
+# Appendix: Scheduler templates
+
+```{r child='wiki_Rmd/LSF.Rmd'}
+```
+
+\newpage
+```{r child='wiki_Rmd/SGE.Rmd'}
+```
+
+\newpage
+```{r child='wiki_Rmd/SLURM.Rmd'}
+```
+
+\newpage
+```{r child='wiki_Rmd/PBS.Rmd'}
+```
+
+\newpage
+```{r child='wiki_Rmd/Torque.Rmd'}
+```
