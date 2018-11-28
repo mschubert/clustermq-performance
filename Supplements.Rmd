@@ -83,7 +83,13 @@ afterwards.
 
 ## Testing hardware
 
-<<wait for yoda answers here>>
+We tested on a computing cluster with 157 nodes, each with 40 cores and 128 GB
+memory, using the LSF scheduler. It at each time had medium load and enough
+free slots to accommodate starting the measurements immediately (using 10 or 50
+jobs).
+
+Nodes were connected internally using a 10 Gbit ethernet connection. The
+network storage was a Lustre high performance file system.
 
 ## Package options
 
@@ -110,13 +116,12 @@ setup.
 
 Every combination of package, number of calls, and number of jobs was run in
 two replicates. We randomized the order each of these measurements was taken.
-The computing cluster at each time had medium load and enough free slots to
-accommodate the measurement (10 or 50 jobs). If jobs were queued long enough
-for this to influence the overall time it took for processing, the measurement
-was discarded and repeated.
+If jobs were queued long enough for this to influence the overall time it took
+for processing, the measurement was discarded and repeated.
 
-Before running each test case, we introduced a random delay between 30 and 60
-seconds in order not to be penalized by the scheduler for rapid submissions.
+We were running only one test case at any time. Before running each test case,
+we introduced a random delay between 30 and 60 seconds in order not to be
+penalized by the scheduler for rapid submissions.
 
 ## Overhead comparison
 
@@ -140,8 +145,10 @@ be between 10^3 and 10^9 calls, separated by a factor of 10.
 
 We downloaded the following files from the GDSC1000 web site
 (https://www.cancerrxgene.org/gdsc1000/GDSC1000_WebResources/Home.html):
-Annotated list of cell-lines log(IC50) values Cancer functional events (CFEs)
-BEMs for cell-lines
+
+ * Annotated list of cell-lines
+ * log(IC50) values Cancer functional events (CFEs)
+ * BEMs for cell-lines
 
 We filtered the data by cancer cohorts that had at least 10 cell lines,
 yielding 25 cohorts and 873 cell lines, their response to 265 drugs, and 1073
@@ -172,6 +179,9 @@ separated by a factor of 10.
 ```
 
 ```{r child='wiki_Rmd/Troubleshooting.Rmd'}
+```
+
+```{r child='wiki_Rmd/Environments.Rmd'}
 ```
 
 \newpage
