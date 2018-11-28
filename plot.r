@@ -63,8 +63,8 @@ p = ggplot(times, aes(x=n_calls, y=mt, shape=n_jobs, color=pkg, linetype=n_jobs)
     theme(axis.text = element_text(size=11),
           strip.text = element_text(size=12),
           strip.background = element_blank()) +
-    facet_wrap(~ fun, scales="free_x")
+    facet_wrap(~ fun, scales="free_x", ncol=1)
 
-pdf(OUTFILE, width=8, height=3.5)
+pdf(OUTFILE, width=5, height=6.5)
 print(p)
 dev.off()

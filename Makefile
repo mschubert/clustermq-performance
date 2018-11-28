@@ -21,6 +21,9 @@ files = $(shell shuf -e $(combinations:%=%.RData) | \
 plot.png: plot.pdf
 	convert -density 400 $< -resize 25% $@
 
+plot.eps: plot.pdf
+	convert $< $@
+
 plot.pdf: plot.r $(files)
 	Rscript plot.r $@ $(files)
 
