@@ -93,17 +93,20 @@ network storage was a Lustre high performance file system.
 
 ## Package options
 
-BatchJobs calls were explicitly chunked with the number of chunks equal to the
-number of jobs. Completed jobs were reduced as a list. Queries were staged, the
-SQLite database timeout set to 5 seconds, and the journal mode to WAL (in line
-with recommendations to reduce issues with file-system locks). Removing the
-registry directory after job completion was counted as processing time.
+`BatchJobs` calls were explicitly chunked with the number of chunks equal to
+the number of jobs. Completed jobs were reduced as a list. Queries were staged,
+the `SQLite` database timeout set to 5 seconds, and the journal mode to `WAL`
+(in line with recommendations to reduce issues with file-system locks).
+Removing the registry directory after job completion was counted as processing
+time.
 
-For batchtools we used btmapply with default settings.
+For `batchtools` we used `btmapply` with default settings, except explicit
+chunking with the number of chunks equal to the number of jobs.
 
-For clustermq we defined rettype as a numeric vector for the overhead scenario
-and as a list for the GDSC scenario. We reduced the number of calls to 10^8 for
-the GDSC scenario in order to fit the results in the main task’s memory.
+For `clustermq` we defined `rettype` as a numeric vector for the overhead
+scenario and as a list for the GDSC scenario. We reduced the number of calls to
+10^8 for the GDSC scenario in order to fit the results in the main task’s
+memory.
 
 Worker memory was set at 512 MB for all packages and all tests.
 
