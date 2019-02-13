@@ -81,6 +81,13 @@ computing cluster (or mount it locally via sshfs), submit jobs there manually,
 and copy/read the results afterwards back to the locally running session
 afterwards.
 
+Of note, workers need to be able to connect via the TCP/IP protocol to the
+master process in order for clustermq to work. These connections are
+authenticated using a one-time password passed as environment variable in the
+job submission script, but are not encrypted. Remote SSH sessions need support
+for reverse tunneling on the HPC login node, and are authenticated and
+encrypted via the SSH layer.
+
 ## Testing hardware
 
 We tested on a computing cluster with 157 nodes, each with 40 cores and 128 GB
