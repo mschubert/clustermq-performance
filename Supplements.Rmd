@@ -175,6 +175,19 @@ capabilities of HPC packages, we resampled with replacement the combinations of
 cohort, drug, and binary event to yield a number between 10^3 and 10^8,
 separated by a factor of 10.
 
+# Discussion
+
+While we observe a very large difference in processing times between
+`clustermq` and the other packages, this difference can only in part be
+explained by the physical limitations of the network vs. the file system. A
+major contributor is that both `BatchJobs` and `batchtools` save the result of
+each function call in a separate results file irrespective of chunking, which
+causes additional latency that could be avoided by combining the results of a
+chunk in a single results file.
+
+This issue has been raised with the authors of the `batchtools` package in
+their repository: https://github.com/mllg/batchtools/issues/222
+
 \newpage
 
 # User guide
