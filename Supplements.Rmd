@@ -178,7 +178,15 @@ separated by a factor of 10.
 # Discussion
 
 While we observe a very large difference in processing times between
-`clustermq` and the other packages, this difference can only in part be
+`clustermq` and the other packages, it should be noted that both test cases
+focussed on a high number of short-running function calls to be evaluated via
+HPC schedulers.
+
+There are of course many use cases that do not require that many calls to be
+evaluated. In this case, and especially if also the duration of each call
+becomes longer, the `batchtools` package will be an excellent choice.
+
+The difference in processing time we see can only in part be
 explained by the physical limitations of the network vs. the file system. A
 major contributor is that both `BatchJobs` and `batchtools` save the result of
 each function call in a separate results file irrespective of chunking, which
@@ -186,7 +194,16 @@ causes additional latency that could be avoided by combining the results of a
 chunk in a single results file.
 
 This issue has been raised with the authors of the `batchtools` package in
-their repository: https://github.com/mllg/batchtools/issues/222
+their repository^[https://github.com/mllg/batchtools/issues/222]. They have
+confirmed that this is a design choice for increased robustness: should a job's
+R process unexpectedly fail (e.g. due to a process segfault or hitting the
+job's wall time limit), all computed results should still be available.
+`clustermq` makes no such guarantees. It is the user's responsibility to
+reserve enough wall time, and computations that can not be completed will be
+lost.
+
+Hence, both packages have their strengths and weaknesses and should be used in
+their respective use cases.
 
 \newpage
 
