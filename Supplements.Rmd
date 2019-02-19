@@ -193,10 +193,10 @@ This issue has been raised with the authors of the `batchtools` package in
 their repository^[https://github.com/mllg/batchtools/issues/222]. They have
 confirmed that this is a design choice for increased robustness: should a job's
 R process unexpectedly fail (e.g. due to a process segfault or hitting the
-job's wall time limit), all computed results should still be available.
-`clustermq` makes no such guarantees. It is the user's responsibility to
-reserve enough wall time, and computations that can not be completed will be
-lost.
+job's wall time limit), all previously computed results should still be
+available.  `clustermq` makes no such guarantees. It is the user's
+responsibility to reserve enough wall time, and computations that can not be
+completed will be lost.
 
 Both `batchtools` as well as `clustermq` are perfectly capable of processing
 fewer and longer running function calls. Depending on the number/duration of
