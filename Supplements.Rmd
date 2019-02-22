@@ -83,7 +83,7 @@ afterwards.
 
 Of note, workers need to be able to connect via the TCP/IP protocol to the
 master process in order for clustermq to work. These connections are
-authenticated using a one-time password passed as environment variable in the
+authenticated using a session password passed as environment variable in the
 job submission script, but are not encrypted. Remote SSH sessions need support
 for reverse tunneling on the HPC login node, and are authenticated and
 encrypted via the SSH layer.
