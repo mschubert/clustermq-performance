@@ -51,22 +51,39 @@ run-times for each call themselves are high, as then the processing time will
 be determined by the task itself. However, if there is a high number of
 short-running calls to process, this becomes a serious bottleneck (cf. Fig. 1).
 
+This bottleneck can be mitigated by processing multiple function calls in one
+chunk and reading/writing the whole chunk data from/to one file. This is,
+however, not what `BatchJobs` and `batchtools` do. In testing different chunk
+sizes, we found that the number of result files scaled with the number of
+calls, not the number of chunks (cf. Table S1).
+
+\small
+**Table S1.** Number of result files produced by `batchtools`
+\normalsize
+```{r echo=FALSE, results='asis'}
+knitr::kable(data.frame(`Number of function calls` =c("1e3", "1e4", "1e5"),
+                        `Files for BatchJobs` =c(1027, 10027, 100027),
+                        `Files for batchtools` = c(1002, 10002, 100002)))
+```
+
+A user, however, could still manually chunk together many short-running calls
+into fewer but longer calls (cf. discussion with the `batchtools` developers at
+https://github.com/mllg/batchtools/issues/222). Alternatively, the
+`future.apply` package could be used to do this automatically:
+
+```{r eval=FALSE}
+library(future.apply)
+plan(future.batchtools_sge, workers = 50)
+y = future_lapply(1:10^9, FUN = sqrt)
+```
+
 The clustermq package on the other hand bypasses network storage entirely (Fig.
-S1b). It will transfer the common data required to perform any call to each
-worker once, and then with each call (or set of calls) transfer the iterated
-call arguments to the workers. This is not only faster as it does not incur the
-delay of both writing to and reading from a networked hard disk, but also
-allows for load balancing if a worker is faster or slower than others with its
-computations.
-
-![](schema.png){width=40%}
-
-**Fig. S1.** Difference in design of (a) network storage-based parallelisation vs.
-(b) a network-only solution. In the former, function arguments are written to
-disk for every call, then read by the workers, which in turn save their result
-on disk. This needs to be read by the main process again to collect the
-results. By contrast, a network-only approach distributes calls from memory,
-and collects results to memory without requiring additional disk storage.
+S1b) and handles chunking automatically. It will transfer the common data
+required to perform any call to each worker once, and then with each call (or
+set of calls) transfer the iterated call arguments to the workers. This is not
+only faster as it does not incur the delay of both writing to and reading from
+a networked hard disk, but also allows for load balancing if a worker is faster
+or slower than others with its computations.
 
 The network-based approach (Fig. S1b) has another advantage: If the R session
 is running on a personal computer that is connected to a computing cluster via
@@ -80,6 +97,18 @@ would need to copy relevant data on the network-mounted storage of the
 computing cluster (or mount it locally via sshfs), submit jobs there manually,
 and copy/read the results afterwards back to the locally running session
 afterwards.
+
+![](schema.png){width=40%}
+
+\small
+**Fig. S1.** Difference in design of (a) network storage-based
+parallelisation vs.  (b) a network-only solution. In the former, function
+arguments are written to disk for every call, then read by the workers, which
+in turn save their result on disk. This needs to be read by the main process
+again to collect the results. By contrast, a network-only approach distributes
+calls from memory, and collects results to memory without requiring additional
+disk storage.
+\normalsize
 
 Of note, workers need to be able to connect via the TCP/IP protocol to the
 master process in order for clustermq to work. These connections are
