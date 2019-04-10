@@ -58,12 +58,15 @@ sizes, we found that the number of result files scaled with the number of
 calls, not the number of chunks (cf. Table S1).
 
 \small
-**Table S1.** Number of result files produced by `batchtools`
+**Table S1.** Number of result files produced by `BatchJobs` and `batchtools`.
+Each function call produces one result file, irrespective if the number of
+chunks is set to the number of workers or not.
 \normalsize
 ```{r echo=FALSE, results='asis'}
 knitr::kable(data.frame(`Number of function calls` =c("1e3", "1e4", "1e5"),
                         `Files for BatchJobs` =c(1027, 10027, 100027),
-                        `Files for batchtools` = c(1002, 10002, 100002)))
+                        `Files for batchtools` = c(1002, 10002, 100002),
+                        check.names = FALSE), format.args = list(big.mark = ","))
 ```
 
 A user, however, could still manually chunk together many short-running calls
