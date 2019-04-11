@@ -53,14 +53,14 @@ short-running calls to process, this becomes a serious bottleneck (cf. Fig. 1).
 
 This bottleneck can be mitigated by processing multiple function calls in one
 chunk and reading/writing the whole chunk data from/to one file. This is,
-however, not what `BatchJobs` and `batchtools` do. In testing different chunk
-sizes, we found that the number of result files scaled with the number of
-calls, not the number of chunks (cf. Table S1).
+however, not what the commonly used tools `BatchJobs` and `batchtools` do. In
+testing different chunk sizes, we found that the number of result files scaled
+with the number of calls, not the number of chunks (cf. Table S1).
 
 \small
 **Table S1.** Number of result files produced by `BatchJobs` and `batchtools`.
-Each function call produces one result file, irrespective if the number of
-chunks is set to the number of workers or not.
+Each function call produces one result file, irrespective of the number of
+chunks set to the number of workers or not.
 \normalsize
 ```{r echo=FALSE, results='asis'}
 knitr::kable(data.frame(`Number of function calls` =c("1e3", "1e4", "1e5"),
@@ -69,8 +69,8 @@ knitr::kable(data.frame(`Number of function calls` =c("1e3", "1e4", "1e5"),
                         check.names = FALSE), format.args = list(big.mark = ","))
 ```
 
-A user, however, could still manually chunk together many short-running calls
-into fewer but longer calls (cf. discussion with the `batchtools` developers at
+A user could still manually chunk together many short-running calls into fewer
+but longer calls (cf. discussion with the `batchtools` developers at
 https://github.com/mllg/batchtools/issues/222). Alternatively, the
 `future.apply` package could be used to do this automatically:
 
@@ -80,7 +80,7 @@ plan(future.batchtools_sge, workers = 50)
 y = future_lapply(1:10^9, FUN = sqrt)
 ```
 
-The clustermq package on the other hand bypasses network storage entirely (Fig.
+The `clustermq` package on the other hand bypasses network storage entirely (Fig.
 S1b) and handles chunking automatically. It will transfer the common data
 required to perform any call to each worker once, and then with each call (or
 set of calls) transfer the iterated call arguments to the workers. This is not
@@ -93,7 +93,7 @@ is running on a personal computer that is connected to a computing cluster via
 SSH, computations can be sent to workers, and the results from the cluster
 returned to the local session without the need for additional setup (as long as
 R is installed with all relevant packages on the computing cluster as well as
-local session). In this case, clustermq transfers common objects to the
+local session). In this case, `clustermq` transfers common objects to the
 computing cluster once, and then waits for the results using an SSH connection
 called reverse tunneling. For file-system-based tools on the other hand, a user
 would need to copy relevant data on the network-mounted storage of the
@@ -104,17 +104,17 @@ afterwards.
 ![](schema.png){width=40%}
 
 \small
-**Fig. S1.** Difference in design of (a) network storage-based
-parallelisation vs.  (b) a network-only solution. In the former, function
-arguments are written to disk for every call, then read by the workers, which
-in turn save their result on disk. This needs to be read by the main process
-again to collect the results. By contrast, a network-only approach distributes
-calls from memory, and collects results to memory without requiring additional
-disk storage.
+**Fig. S1.** Difference in design of (a) network storage-based parallelisation
+in `BatchJobs` and `batchtools` vs.  (b) `clustermq`'s network-only solution.
+In the former, function arguments are written to disk for every call, then read
+by the workers, which in turn save their result on disk. This needs to be read
+by the main process again to collect the results. By contrast, `clustermq`
+distributes calls from memory, and collects results to memory without requiring
+additional disk storage.
 \normalsize
 
 Of note, workers need to be able to connect via the TCP/IP protocol to the
-master process in order for clustermq to work. These connections are
+master process in order for `clustermq` to work. These connections are
 authenticated using a session password passed as environment variable in the
 job submission script, but are not encrypted. Remote SSH sessions need support
 for reverse tunneling on the HPC login node, and are authenticated and
